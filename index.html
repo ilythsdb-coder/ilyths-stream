@@ -8,7 +8,7 @@
 <meta name="description" content="NEVERMIND STREAM — Films en streaming">
 <link rel="manifest" href="manifest.json">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
  --bg:#000;--bg2:#0a0a0a;--bg3:#111;--bg4:#1a1a1a;
@@ -16,7 +16,7 @@
  --accent:#fff;--red:#e50914;
  --card-w:155px;--card-h:232px;--nav-h:64px;
 }
-html,body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:#1a1a1a #000}
+html,body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min-height:100vh;overflow-x:hidden;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:#1a1a1a #000}
 *::-webkit-scrollbar{width:6px;height:6px}
 *::-webkit-scrollbar-track{background:#0a0a0a}
 *::-webkit-scrollbar-thumb{background:#1e1e1e;border-radius:4px}
@@ -25,7 +25,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',san
 /* NAV */
 #nav{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--nav-h);display:flex;align-items:center;padding:0 32px;gap:32px;background:linear-gradient(to bottom,rgba(0,0,0,.95),rgba(0,0,0,.7));backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:none;border-radius:0;box-shadow:0 1px 0 rgba(255,255,255,.07),0 6px 28px rgba(0,0,0,.55);transition:background .3s}
 #nav.scrolled{background:rgba(0,0,0,.97)}
-.nav-logo{font-size:14px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#fff;white-space:nowrap;cursor:pointer;user-select:none;flex-shrink:0}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;letter-spacing:2.8px;text-transform:uppercase;color:#fff;white-space:nowrap;cursor:pointer;user-select:none;flex-shrink:0}
+.logo-mark{width:27px;height:27px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.28);border-radius:8px;background:linear-gradient(145deg,#fff,#a9a9a9);color:#000;font-size:13px;font-weight:700;letter-spacing:-1px;box-shadow:0 5px 18px rgba(255,255,255,.12)}
+.logo-wordmark{line-height:1}
 .nav-cat-wrap{position:relative;flex-shrink:0}
 .nav-cat-btn{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;letter-spacing:1.5px;color:rgba(255,255,255,.6);cursor:pointer;padding:6px 0;transition:color .15s;white-space:nowrap;background:none;border:none;font-family:inherit}
 .nav-cat-btn:hover,.nav-cat-wrap.open .nav-cat-btn{color:#fff}
@@ -87,6 +89,7 @@ body.light{--bg:#f2f2f5;--bg2:#fff;--bg3:#e4e4e8;--bg4:#d8d8dc;--border:rgba(0,0
 body.light #nav{background:linear-gradient(to bottom,rgba(242,242,245,.97),rgba(242,242,245,.85));box-shadow:0 1px 0 rgba(0,0,0,.08),0 6px 28px rgba(0,0,0,.06)}
 body.light #nav.scrolled{background:rgba(242,242,245,.99)}
 body.light .nav-logo{color:#111}
+body.light .logo-mark{background:linear-gradient(145deg,#111,#555);border-color:rgba(0,0,0,.2);color:#fff;box-shadow:none}
 body.light .nav-cat-btn{color:rgba(0,0,0,.5)}
 body.light .nav-cat-btn:hover,body.light .nav-cat-wrap.open .nav-cat-btn{color:#000}
 body.light .nav-search-wrap{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.12)}
@@ -168,6 +171,9 @@ body.light .mc-rating{color:#111}
 body.light .mc-runtime{color:rgba(0,0,0,.5)}
 body.light .mc-quality{border-color:rgba(0,0,0,.2);color:rgba(0,0,0,.5)}
 body.light .movie-card-overview{color:#333}
+body.light .mc-providers{border-color:rgba(0,0,0,.1)}
+body.light .mc-provider-btn{color:rgba(0,0,0,.7);background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.12)}
+body.light .mc-provider-btn:hover{background:rgba(0,0,0,.08);border-color:rgba(0,0,0,.25);color:#111}
 body.light .movie-card-section-title{color:rgba(0,0,0,.45)}
 body.light .mc-genre-tag{border-color:rgba(0,0,0,.15);color:rgba(0,0,0,.55)}
 body.light .mc-cast-name{color:#333}
@@ -296,7 +302,7 @@ body.light .sk-img,body.light .sk-line{background:linear-gradient(90deg,#e0e0e4 
 .hero-actions{display:flex;gap:12px;align-items:center}
 .btn-primary{display:inline-flex;align-items:center;gap:10px;background:#fff;color:#000;border:none;padding:13px 26px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:background .15s,transform .1s}
 .btn-primary:hover{background:#e0e0e0;transform:scale(1.01)}
-.btn-info-hero{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);padding:12px 26px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;backdrop-filter:blur(4px)}
+.btn-info-hero{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);padding:12px 26px;border-radius:8px;font-family:'Manrope',sans-serif;font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;backdrop-filter:blur(4px)}
 .btn-info-hero:hover{background:rgba(255,255,255,.14)}
 .hero-dots{position:absolute;bottom:28px;right:60px;z-index:3;display:flex;gap:6px}
 .dot{width:20px;height:2px;background:rgba(255,255,255,.25);cursor:pointer;transition:background .2s,width .2s;border-radius:1px}
@@ -378,6 +384,13 @@ body.light .sk-img,body.light .sk-line{background:linear-gradient(90deg,#e0e0e4 
 .mc-runtime{font-size:12px;color:rgba(255,255,255,.5)}
 .mc-quality{font-size:10px;font-weight:700;letter-spacing:1px;border:1px solid rgba(255,255,255,.3);padding:1px 5px;border-radius:3px;color:rgba(255,255,255,.5)}
 .movie-card-overview{font-size:14px;color:#ccc;line-height:1.7;margin-bottom:22px}
+.mc-providers{margin:0 0 22px;padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.mc-providers-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.mc-providers-list{display:flex;flex-wrap:wrap;gap:8px}
+.mc-provider-btn{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid var(--border);border-radius:6px;color:rgba(255,255,255,.75);background:rgba(255,255,255,.04);font:600 11px 'Space Grotesk',sans-serif;text-decoration:none;transition:background .15s,border-color .15s,color .15s}
+.mc-provider-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3);color:#fff}
+.mc-provider-btn img{width:22px;height:22px;border-radius:5px;object-fit:cover}
+.mc-providers-empty{font-size:12px;color:var(--muted)}
 .movie-card-info{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
 .mc-info-row{font-size:12px;line-height:1.6}
 .mc-info-label{color:rgba(255,255,255,.4);margin-right:4px}
@@ -514,17 +527,24 @@ body.light .sk-img,body.light .sk-line{background:linear-gradient(90deg,#e0e0e4 
 
 /* FOOTER CREDITS */
 #site-footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px}
-.footer-left{font-size:12px;font-weight:700;letter-spacing:3px;color:var(--muted)}
+.footer-left{display:flex;align-items:center;gap:9px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;color:var(--muted)}
+.footer-mark{width:22px;height:22px;display:grid;place-items:center;border:1px solid currentColor;border-radius:6px;font-size:10px;letter-spacing:-1px;color:var(--muted)}
 .footer-right{font-size:11px;color:var(--muted)}
 .footer-right a{color:var(--muted);text-decoration:none;transition:color .15s}
 .footer-right a:hover{color:var(--text)}
 
 @media(max-width:700px){
  :root{--card-w:130px;--card-h:195px}
+ #nav{padding:0 16px;gap:16px}
+ .nav-logo{gap:7px}
+ .logo-wordmark{font-size:0;letter-spacing:0}
+ .logo-wordmark::after{content:'NVM';font:700 12px 'Space Grotesk',sans-serif;letter-spacing:1.5px}
+ .nav-right{gap:8px}
+ .nav-search-wrap{padding:0 10px}
+ .nav-search-wrap input{width:78px}
  .hero-content{padding:0 24px 50px}
  .filter-bar,.section{padding-left:20px;padding-right:20px}
  .search-ov-inner{padding:24px}
- .nav-search-wrap input{width:110px}
  .movie-card-info{grid-template-columns:1fr}
  .player-wrap{flex:0 0 38vh}
  .player-info{padding:16px 18px}
@@ -553,7 +573,7 @@ body.light .sk-img,body.light .sk-line{background:linear-gradient(90deg,#e0e0e4 
 
 <!-- NAV -->
 <nav id="nav">
- <div class="nav-logo" onclick="showHome()">NEVERMIND STREAM</div>
+ <div class="nav-logo" onclick="showHome()"><span class="logo-mark">N</span><span class="logo-wordmark">NEVERMIND <span style="opacity:.48">STREAM</span></span></div>
  <div class="nav-cat-wrap" id="nav-cat-wrap">
  <button class="nav-cat-btn" onclick="toggleCatMenu()">
  Catégories
@@ -768,6 +788,7 @@ body.light .sk-img,body.light .sk-line{background:linear-gradient(90deg,#e0e0e4 
  <span class="mc-quality">HD</span>
  </div>
  <div class="movie-card-overview" id="mc-overview"></div>
+ <div class="mc-providers" id="mc-providers"></div>
  <div class="mc-genres" id="mc-genres"></div>
  <div class="movie-card-section-title">Distribution</div>
  <div class="mc-cast" id="mc-cast"></div>
@@ -1083,7 +1104,7 @@ body.light .sk-img,body.light .sk-line{background:linear-gradient(90deg,#e0e0e4 
 
 <!-- FOOTER CRÉDITS -->
 <footer id="site-footer">
-  <div class="footer-left">NEVERMIND STREAM — ilyths</div>
+  <div class="footer-left"><span class="footer-mark">N</span><span>NEVERMIND STREAM — ilyths</span></div>
   <div class="footer-right">Données : <a href="https://www.themoviedb.org" target="_blank">TMDB API</a> &nbsp;·&nbsp; © 2025</div>
 </footer>
 
@@ -1619,7 +1640,8 @@ async function openMovieModal(m){
  const wb=document.getElementById('mc-watchlist-btn');
  if(wb)wb.classList.toggle('active',isInWatchlist(m.id));
  // play btn
- document.getElementById('mc-play-btn').onclick=()=>{closeMovieModal();openPlayer(m);};
+ const playBtn=document.getElementById('mc-play-btn');
+ playBtn.onclick=()=>{closeMovieModal();openPlayer(m);};
  // One TMDB request returns the complete movie detail bundle.
  const bundle=await getMovieBundle(m.id).catch(()=>({}));
  const details={...m,...bundle};
@@ -1658,9 +1680,21 @@ async function openMovieModal(m){
  const pEl=document.getElementById('mc-providers');
  if(pEl){
   const fr=(providers.results||{}).FR||{};
-  const allP=[...(fr.flatrate||[]),(fr.buy||[]).slice(0,2)].slice(0,6);
-  if(allP.length>0){
-   pEl.innerHTML='<div class="mc-providers-label">Disponible sur</div><div class="mc-providers-list">'+allP.map(p=>`<img class="mc-provider-logo" src="${IMG}original${p.logo_path}" title="${p.provider_name}" alt="${p.provider_name}">`).join('')+'</div>';
+  const allP=[...(fr.flatrate||[]),...(fr.free||[]),...(fr.ads||[]),...(fr.rent||[]),...(fr.buy||[])].filter((p,i,a)=>a.findIndex(x=>x.provider_id===p.provider_id)===i).slice(0,8);
+  pEl.innerHTML='';
+  const label=document.createElement('div');label.className='mc-providers-label';label.textContent='Disponible légalement';pEl.appendChild(label);
+  if(fr.link&&allP.length){
+   const list=document.createElement('div');list.className='mc-providers-list';
+   allP.forEach(provider=>{
+    const link=document.createElement('a');link.className='mc-provider-btn';link.href=fr.link;link.target='_blank';link.rel='noopener noreferrer';link.title='Ouvrir les options officielles';
+    if(provider.logo_path){const img=document.createElement('img');img.src=IMG+'w92'+provider.logo_path;img.alt='';link.appendChild(img);}
+    link.appendChild(document.createTextNode(provider.provider_name));list.appendChild(link);
+   });
+   pEl.appendChild(list);
+   playBtn.textContent='Voir légalement';
+   playBtn.onclick=()=>window.open(fr.link,'_blank','noopener,noreferrer');
+  }else{
+   const empty=document.createElement('div');empty.className='mc-providers-empty';empty.textContent='Aucune plateforme officielle trouvée en France.';pEl.appendChild(empty);
   }
  }
  // cast
