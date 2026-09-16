@@ -26,8 +26,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-seri
 #nav{position:fixed;top:0;left:0;right:0;z-index:200;height:var(--nav-h);display:flex;align-items:center;padding:0 32px;gap:32px;background:linear-gradient(to bottom,rgba(0,0,0,.95),rgba(0,0,0,.7));backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:none;border-radius:0;box-shadow:0 1px 0 rgba(255,255,255,.07),0 6px 28px rgba(0,0,0,.55);transition:background .3s}
 #nav.scrolled{background:rgba(0,0,0,.97)}
 .nav-logo{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;letter-spacing:2.8px;text-transform:uppercase;color:#fff;white-space:nowrap;cursor:pointer;user-select:none;flex-shrink:0}
-.logo-mark{width:27px;height:27px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.28);border-radius:8px;background:linear-gradient(145deg,#fff,#a9a9a9);color:#000;font-size:13px;font-weight:700;letter-spacing:-1px;box-shadow:0 5px 18px rgba(255,255,255,.12)}
+.logo-mark{width:27px;height:27px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.55);border-radius:6px;background:transparent;color:#fff;font-size:13px;font-weight:700;letter-spacing:-1px}
 .logo-wordmark{line-height:1}
+.logo-muted{opacity:.46}
 .nav-cat-wrap{position:relative;flex-shrink:0}
 .nav-cat-btn{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;letter-spacing:1.5px;color:rgba(255,255,255,.6);cursor:pointer;padding:6px 0;transition:color .15s;white-space:nowrap;background:none;border:none;font-family:inherit}
 .nav-cat-btn:hover,.nav-cat-wrap.open .nav-cat-btn{color:#fff}
@@ -45,6 +46,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-seri
 .nav-search-wrap input{background:none;border:none;outline:none;font-family:inherit;font-size:13px;color:#fff;width:170px}
 .nav-search-wrap input::placeholder{color:var(--muted)}
 .search-ic{color:var(--muted);margin-right:8px;font-size:13px;flex-shrink:0}
+.search-ic svg,.reload-btn svg,#back-top svg{display:block;width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .nav-auth-btn{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;padding:0 14px;height:36px;font-family:inherit;font-size:12px;font-weight:600;color:rgba(255,255,255,.75);cursor:pointer;transition:background .15s,color .15s,border-color .15s;white-space:nowrap;flex-shrink:0}
 .nav-auth-btn:hover{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.2)}
 .nav-auth-btn.logged{background:rgba(255,255,255,.1)!important;border-color:rgba(255,255,255,.2)!important;color:#fff!important}
@@ -89,7 +91,7 @@ body.light{--bg:#f2f2f5;--bg2:#fff;--bg3:#e4e4e8;--bg4:#d8d8dc;--border:rgba(0,0
 body.light #nav{background:linear-gradient(to bottom,rgba(242,242,245,.97),rgba(242,242,245,.85));box-shadow:0 1px 0 rgba(0,0,0,.08),0 6px 28px rgba(0,0,0,.06)}
 body.light #nav.scrolled{background:rgba(242,242,245,.99)}
 body.light .nav-logo{color:#111}
-body.light .logo-mark{background:linear-gradient(145deg,#111,#555);border-color:rgba(0,0,0,.2);color:#fff;box-shadow:none}
+body.light .logo-mark{background:transparent;border-color:rgba(0,0,0,.45);color:#111}
 body.light .nav-cat-btn{color:rgba(0,0,0,.5)}
 body.light .nav-cat-btn:hover,body.light .nav-cat-wrap.open .nav-cat-btn{color:#000}
 body.light .nav-search-wrap{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.12)}
@@ -424,7 +426,7 @@ body.light .sk-img,body.light .sk-line{background:linear-gradient(90deg,#e0e0e4 
 .source-btn:hover{color:#fff;border-color:#555}
 .source-btn.active{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3);color:#fff}
 /* RELOAD IFRAME BTN */
-.reload-btn{font-family:inherit;font-size:11px;font-weight:600;letter-spacing:1px;padding:5px 12px;border-radius:5px;border:1px solid rgba(255,255,255,.15);background:none;color:rgba(255,255,255,.5);cursor:pointer;transition:color .15s,border-color .15s,background .15s;margin-left:auto}
+.reload-btn{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:11px;font-weight:600;letter-spacing:1px;padding:5px 12px;border-radius:5px;border:1px solid rgba(255,255,255,.15);background:none;color:rgba(255,255,255,.5);cursor:pointer;transition:color .15s,border-color .15s,background .15s;margin-left:auto}
 .reload-btn:hover{color:#fff;border-color:#555;background:rgba(255,255,255,.07)}
 /* Settings tabs */
 .settings-tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
@@ -573,7 +575,7 @@ body.light .sk-img,body.light .sk-line{background:linear-gradient(90deg,#e0e0e4 
 
 <!-- NAV -->
 <nav id="nav">
- <div class="nav-logo" onclick="showHome()"><span class="logo-mark">N</span><span class="logo-wordmark">NEVERMIND <span style="opacity:.48">STREAM</span></span></div>
+ <div class="nav-logo" onclick="showHome()"><span class="logo-mark">N</span><span class="logo-wordmark">NEVERMIND <span class="logo-muted">STREAM</span></span></div>
  <div class="nav-cat-wrap" id="nav-cat-wrap">
  <button class="nav-cat-btn" onclick="toggleCatMenu()">
  Catégories
@@ -599,7 +601,7 @@ body.light .sk-img,body.light .sk-line{background:linear-gradient(90deg,#e0e0e4 
  Découverte
  </button>
  <div class="nav-search-wrap">
- <span class="search-ic">⌕</span>
+ <span class="search-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 5 5"></path></svg></span>
  <input type="text" id="search-input" placeholder="Rechercher…" autocomplete="off">
  </div>
  <div class="nav-profile-wrap" id="nav-profile-wrap">
@@ -816,12 +818,12 @@ body.light .sk-img,body.light .sk-line{background:linear-gradient(90deg,#e0e0e4 
  <span class="player-source-label" style="margin-left:8px">Langue</span>
  <button class="source-btn" id="lang-vf-btn" onclick="setPlayerLang('fr',this)">VF</button>
  <button class="source-btn" id="lang-vo-btn" onclick="setPlayerLang('en',this)">VO</button>
- <button class="reload-btn" onclick="reloadIframe()">↺ Recharger</button>
+ <button class="reload-btn" onclick="reloadIframe()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-3.9L3 9"></path><path d="M3 4v5h5"></path><path d="M4 13a8 8 0 0 0 14.9 3.9L21 15"></path><path d="M21 20v-5h-5"></path></svg> Recharger</button>
  </div>
 </div>
 
 <!-- BACK TO TOP -->
-<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Retour en haut">↑</button>
+<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Retour en haut" aria-label="Retour en haut"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"></path></svg></button>
 
 <!-- DISCOVERY MODAL -->
 <div id="discovery-modal">
