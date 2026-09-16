@@ -88,7 +88,7 @@ body.light #nav{background:linear-gradient(to bottom,rgba(242,242,245,.97),rgba(
 body.light #nav.scrolled{background:rgba(242,242,245,.99)}
 body.light .nav-logo{color:#111}
 body.light .nav-cat-btn{color:rgba(0,0,0,.5)}
-body.light .nav-cat-btn:hover,.body.light .nav-cat-wrap.open .nav-cat-btn{color:#000}
+body.light .nav-cat-btn:hover,body.light .nav-cat-wrap.open .nav-cat-btn{color:#000}
 body.light .nav-search-wrap{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.12)}
 body.light .nav-search-wrap:focus-within{background:rgba(0,0,0,.09);border-color:rgba(0,0,0,.2)}
 body.light .nav-search-wrap input{color:#111}
@@ -180,7 +180,7 @@ body.light .movie-card-box::-webkit-scrollbar-thumb{background:#ddd}
 body.light .mc-similars::-webkit-scrollbar-track{background:#fff}
 body.light .mc-similars::-webkit-scrollbar-thumb{background:#ddd}
 body.light .star-btn{color:#ddd}
-body.light .star-btn:hover,.body.light .star-btn.lit{color:#f5c518}
+body.light .star-btn:hover,body.light .star-btn.lit{color:#f5c518}
 /* Auth & settings boxes */
 body.light .auth-box,body.light .settings-box{background:#fff;border-color:rgba(0,0,0,.1)}
 body.light .auth-box h2,body.light .settings-box h2{color:#111}
@@ -256,7 +256,7 @@ body.light *::-webkit-scrollbar-thumb{background:#ccc}
 body.light *::-webkit-scrollbar-thumb:hover{background:#bbb}
 body.light .row{scrollbar-color:#ccc #f2f2f5}
 /* Skeleton */
-body.light .sk-img,.body.light .sk-line{background:linear-gradient(90deg,#e0e0e4 25%,#d0d0d4 50%,#e0e0e4 75%);background-size:200% 100%}
+body.light .sk-img,body.light .sk-line{background:linear-gradient(90deg,#e0e0e4 25%,#d0d0d4 50%,#e0e0e4 75%);background-size:200% 100%}
 
 /* AUTH */
 #auth-modal,#modal-username,#modal-password,#modal-history,#modal-settings{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center}
@@ -1342,7 +1342,7 @@ function toggleRatings(on){
 }
 function toggleYears(on){
  document.querySelectorAll('.card-sub').forEach(el=>{
- const yearSpan=el.querySelectorAll('span')[1];
+ const yearSpan=[...el.querySelectorAll('span')].find(span => /^\d{4}$/.test(span.textContent.trim()));
  if(yearSpan)yearSpan.style.display=on?'':'none';
  });
 }
@@ -1479,7 +1479,13 @@ async function api(path,params={}){
  u.searchParams.set('api_key',KEY);
  u.searchParams.set('language',LANG);
  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
- const r=await fetch(u);return r.json();
+ const r=await fetch(u);
+ if(!r.ok)throw new Error(`TMDB request failed: ${r.status}`);
+ return r.json();
+}
+
+function settleAll(requests){
+ return Promise.all(requests.map(p=>p.then(v=>v).catch(()=>({results:[]}))))
 }
 function poster(p,size='w500'){return p?IMG+size+p:`data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450"><rect fill="%23111"/></svg>`;}
 function backdrop(p){return p?IMG+'original'+p:'';}
@@ -1645,16 +1651,20 @@ function mcToggleFav(){if(currentMovieModal)toggleFav(currentMovieModal,null);}
 let currentPlayerMovie=null;
 let currentSourceIdx=0;
 let playerLang='fr';
+const SOURCE_ALIASES={0:0,1:2,2:1,3:0,4:1,5:0,6:0,7:0};
 const SOURCES=[
  m=>`https://player.autoembed.cc/embed/movie/${m.id}?autoplay=true&lang=${playerLang}`,
  m=>`https://player.videasy.net/movie/${m.id}?lang=${playerLang}`,
  m=>`https://multiembed.mov/?video_id=${m.id}&tmdb=1&lang=${playerLang}`,
 ];
+function getDefaultSourceIndex(){
+ const saved=Number(getSetting('defSource',0));
+ return SOURCE_ALIASES[saved] ?? SOURCE_ALIASES[0];
+}
 function setPlayerLang(lang,btn){
  playerLang=lang;
  document.querySelectorAll('#lang-vo-btn,#lang-vf-btn').forEach(b=>b.classList.remove('active'));
- btn.classList.add('active');
- // Rebuild autoembed URL with lang if on source 0
+ if(btn)btn.classList.add('active');
  if(currentPlayerMovie){
  const iframe=document.getElementById('player-iframe');
  iframe.src=SOURCES[currentSourceIdx](currentPlayerMovie);
@@ -1665,7 +1675,7 @@ function setSource(idx,btn){
  if(!currentPlayerMovie)return;
  currentSourceIdx=idx;
  document.querySelectorAll('.source-btn:not(#lang-vo-btn):not(#lang-vf-btn)').forEach(b=>b.classList.remove('active'));
- btn.classList.add('active');
+ if(btn)btn.classList.add('active');
  document.getElementById('player-iframe').src=SOURCES[idx](currentPlayerMovie);
 }
 async function openPlayer(m){
@@ -1675,9 +1685,9 @@ async function openPlayer(m){
  const rating=(m.vote_average||0).toFixed(1);
  document.getElementById('modal-meta').textContent=year+' · '+rating;
  const iframe=document.getElementById('player-iframe');
- iframe.src=SOURCES[DEFAULT_SOURCE](m);
- document.querySelectorAll('.source-btn:not(#lang-vo-btn):not(#lang-vf-btn)').forEach((b,i)=>b.classList.toggle('active',i===DEFAULT_SOURCE));
- currentSourceIdx=DEFAULT_SOURCE;
+ currentSourceIdx=getDefaultSourceIndex();
+ iframe.src=SOURCES[currentSourceIdx](m);
+ document.querySelectorAll('.source-btn:not(#lang-vo-btn):not(#lang-vf-btn)').forEach((b,i)=>b.classList.toggle('active',i===currentSourceIdx));
  document.getElementById('lang-vo-btn').classList.toggle('active',playerLang==='en');
  document.getElementById('lang-vf-btn').classList.toggle('active',playerLang==='fr');
  document.getElementById('modal').classList.add('open');
@@ -1698,6 +1708,7 @@ function closePlayer(){
 const heroCache={};
 let heroTransitioning=false;
 async function setHero(movie){
+ if(!movie)return;
  if(heroTransitioning)return;
  heroTransitioning=true;
  const bg=document.getElementById('hero-bg');
@@ -1742,12 +1753,16 @@ function jumpHero(i){
  startHeroTimer();
 }
 function nextHero(){
+ if(!heroMovies.length)return;
  if(heroTransitioning)return;
  heroIdx=(heroIdx+1)%Math.min(heroMovies.length,7);
  document.querySelectorAll('.dot').forEach((d,j)=>d.classList.toggle('active',j===heroIdx));
  setHero(heroMovies[heroIdx]);
 }
-function prevHero(){stopHeroTimer();heroIdx=(heroIdx-1+Math.min(heroMovies.length,7))%Math.min(heroMovies.length,7);jumpHero(heroIdx);}
+function prevHero(){
+ if(!heroMovies.length)return;
+ stopHeroTimer();heroIdx=(heroIdx-1+Math.min(heroMovies.length,7))%Math.min(heroMovies.length,7);jumpHero(heroIdx);
+}
 function nextHeroManual(){stopHeroTimer();nextHero();startHeroTimer();}
 
 /* NAV */
@@ -1816,12 +1831,27 @@ async function loadMoreGenre(){
 }
 function setFilter(f,btn){
  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
- btn.classList.add('active');
+ if(btn)btn.classList.add('active');
  const secs=document.querySelectorAll('#home-view .section');
  if(f==='all'){secs.forEach(s=>s.style.display='');return;}
  secs.forEach(s=>s.style.display='none');
- const map={'28':'sec-action','35':'sec-comedy','27':'sec-horror','878':'sec-scifi','18':'sec-drama','10749':'sec-popular','12':'sec-adventure','14':'sec-fantasy','80':'sec-crime','9648':'sec-thriller','16':'sec-animation','99':'sec-trending','37':'sec-top'};
- const sid=map[f];if(sid){const el=document.getElementById(sid);if(el)el.style.display='';}
+ const map={
+  '28':'sec-action',
+  '35':'sec-comedy',
+  '27':'sec-horror',
+  '878':'sec-scifi',
+  '18':'sec-drama',
+  '10749':'sec-romance',
+  '12':'sec-adventure',
+  '14':'sec-fantasy',
+  '80':'sec-crime',
+  '9648':'sec-thriller',
+  '16':'sec-animation',
+  '37':'sec-western',
+  '99':'sec-trending'
+ };
+ const sid=map[f];
+ if(sid){const el=document.getElementById(sid);if(el)el.style.display='';}
  refreshUserSections();
 }
 
@@ -1995,57 +2025,59 @@ async function init(){
  loadSession();
  loadSettings();
 
- // Wave 1 : above-the-fold (4 pages popular/top for big rows)
- const [tr1,np1,po1,po2,po3,tp1,tp2,tp3]=await Promise.all([
- api('/trending/movie/week'),
- api('/movie/now_playing'),
- api('/movie/popular',{page:1}),
- api('/movie/popular',{page:2}),
- api('/movie/popular',{page:3}),
- api('/movie/top_rated',{page:1}),
- api('/movie/top_rated',{page:2}),
- api('/movie/top_rated',{page:3}),
- ]);
- heroMovies=tr1.results||[];
- buildDots();setHero(heroMovies[0]);
- startHeroTimer();
+ const safeApi = (path, params={}) => api(path, params).catch(() => ({results:[]}));
 
- const [tr2,tr3,np2,tp4,tp5]=await Promise.all([
- api('/trending/movie/week',{page:2}),
- api('/trending/movie/week',{page:3}),
- api('/movie/now_playing',{page:2}),
- api('/movie/top_rated',{page:4}),
- api('/movie/top_rated',{page:5}),
+ // Wave 1
+ const [tr1,np1,po1,po2,po3,tp1,tp2,tp3]=await settleAll([
+ safeApi('/trending/movie/week'),
+ safeApi('/movie/now_playing'),
+ safeApi('/movie/popular',{page:1}),
+ safeApi('/movie/popular',{page:2}),
+ safeApi('/movie/popular',{page:3}),
+ safeApi('/movie/top_rated',{page:1}),
+ safeApi('/movie/top_rated',{page:2}),
+ safeApi('/movie/top_rated',{page:3}),
+ ]);
+ heroMovies=(tr1.results||[]).filter(Boolean);
+ if(heroMovies.length){buildDots();setHero(heroMovies[0]);startHeroTimer();}
+
+ const [tr2,tr3,np2,tp4,tp5]=await settleAll([
+ safeApi('/trending/movie/week',{page:2}),
+ safeApi('/trending/movie/week',{page:3}),
+ safeApi('/movie/now_playing',{page:2}),
+ safeApi('/movie/top_rated',{page:4}),
+ safeApi('/movie/top_rated',{page:5}),
  ]);
  fillRowWithSkeleton('row-trending',mergePages(tr1,tr2,tr3).slice(0,60),'cnt-trending');
  fillRowWithSkeleton('row-nowplaying',mergePages(np1,np2).slice(0,40),'cnt-nowplaying');
  fillRowWithSkeleton('row-popular',mergePages(po1,po2,po3).slice(0,60),'cnt-popular');
  fillRowWithSkeleton('row-top',mergePages(tp1,tp2,tp3,tp4,tp5).slice(0,100),'cnt-top');
 
+ if(heroMovies.length){
  heroMovies.slice(1,7).forEach(m=>{
  setTimeout(()=>api(`/movie/${m.id}`).then(d=>{heroCache[m.id]={...m,...d};}).catch(()=>{}),500);
  });
+ }
 
- // Wave 2 : main genre rows — 3 pages each ~60 films
- const [a1,a2,a3,h1,h2,h3,sf1,sf2,sf3,co1,co2,co3,dr1,dr2,dr3,th1,th2,th3]=await Promise.all([
- api('/discover/movie',{with_genres:28,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:28,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:28,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{with_genres:27,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:27,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:27,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{with_genres:878,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:878,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:878,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{with_genres:35,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:35,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:35,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{with_genres:18,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:18,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:18,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{with_genres:53,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:53,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:53,sort_by:'popularity.desc',page:3}),
+ const [a1,a2,a3,h1,h2,h3,sf1,sf2,sf3,co1,co2,co3,dr1,dr2,dr3,th1,th2,th3]=await settleAll([
+ safeApi('/discover/movie',{with_genres:28,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:28,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:28,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{with_genres:27,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:27,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:27,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{with_genres:878,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:878,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:878,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{with_genres:35,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:35,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:35,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{with_genres:18,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:18,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:18,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{with_genres:53,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:53,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:53,sort_by:'popularity.desc',page:3}),
  ]);
  fillRow('row-action',mergePages(a1,a2,a3));
  fillRow('row-horror',mergePages(h1,h2,h3));
@@ -2054,26 +2086,25 @@ async function init(){
  fillRow('row-drama',mergePages(dr1,dr2,dr3));
  fillRow('row-thriller',mergePages(th1,th2,th3));
 
- // Wave 3 : secondary genres — 3 pages each
- const [an1,an2,an3,cr1,cr2,cr3,av1,av2,av3,fa1,fa2,fa3,ro1,ro2,ro3,we1,we2,we3]=await Promise.all([
- api('/discover/movie',{with_genres:16,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:16,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:16,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{with_genres:80,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:80,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:80,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{with_genres:12,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:12,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:12,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{with_genres:14,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:14,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:14,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{with_genres:10749,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:10749,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:10749,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{with_genres:37,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:37,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:37,sort_by:'popularity.desc',page:3}),
+ const [an1,an2,an3,cr1,cr2,cr3,av1,av2,av3,fa1,fa2,fa3,ro1,ro2,ro3,we1,we2,we3]=await settleAll([
+ safeApi('/discover/movie',{with_genres:16,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:16,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:16,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{with_genres:80,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:80,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:80,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{with_genres:12,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:12,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:12,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{with_genres:14,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:14,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:14,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{with_genres:10749,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:10749,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:10749,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{with_genres:37,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:37,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:37,sort_by:'popularity.desc',page:3}),
  ]);
  fillRow('row-animation',mergePages(an1,an2,an3));
  fillRow('row-crime',mergePages(cr1,cr2,cr3));
@@ -2082,28 +2113,27 @@ async function init(){
  fillRow('row-romance',mergePages(ro1,ro2,ro3));
  fillRow('row-western',mergePages(we1,we2,we3));
 
- // Wave 4 : years + niche genres
- const [y251,y252,y241,y242,y243,y231,y232,y233,y221,y222,y223,y211,y212,cl1,cl2,cl3,dc1,dc2,mu1,wa1]=await Promise.all([
- api('/discover/movie',{primary_release_year:2025,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{primary_release_year:2025,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{primary_release_year:2024,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{primary_release_year:2024,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{primary_release_year:2024,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{primary_release_year:2023,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{primary_release_year:2023,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{primary_release_year:2023,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{primary_release_year:2022,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{primary_release_year:2022,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{primary_release_year:2022,sort_by:'popularity.desc',page:3}),
- api('/discover/movie',{primary_release_year:2021,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{primary_release_year:2021,sort_by:'popularity.desc',page:2}),
- api('/movie/top_rated',{page:4}),
- api('/movie/top_rated',{page:5}),
- api('/movie/top_rated',{page:6}),
- api('/discover/movie',{with_genres:99,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:99,sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_genres:10402,sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_genres:'10752,36',sort_by:'popularity.desc',page:1}),
+ const [y251,y252,y241,y242,y243,y231,y232,y233,y221,y222,y223,y211,y212,cl1,cl2,cl3,dc1,dc2,mu1,wa1]=await settleAll([
+ safeApi('/discover/movie',{primary_release_year:2025,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{primary_release_year:2025,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{primary_release_year:2024,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{primary_release_year:2024,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{primary_release_year:2024,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{primary_release_year:2023,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{primary_release_year:2023,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{primary_release_year:2023,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{primary_release_year:2022,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{primary_release_year:2022,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{primary_release_year:2022,sort_by:'popularity.desc',page:3}),
+ safeApi('/discover/movie',{primary_release_year:2021,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{primary_release_year:2021,sort_by:'popularity.desc',page:2}),
+ safeApi('/movie/top_rated',{page:4}),
+ safeApi('/movie/top_rated',{page:5}),
+ safeApi('/movie/top_rated',{page:6}),
+ safeApi('/discover/movie',{with_genres:99,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:99,sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_genres:10402,sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_genres:'10752,36',sort_by:'popularity.desc',page:1}),
  ]);
  fillRow('row-2025',mergePages(y251,y252));
  fillRow('row-2024',mergePages(y241,y242,y243));
@@ -2117,36 +2147,35 @@ async function init(){
 
  if(currentUser)buildRecommendations();
 
- // Wave 5 : régions & langues — 2 pages chacun
- const [fr1,fr2,en1,en2,es1,es2,ja1,ja2,ko1,ko2,hi1,hi2,it1,it2,de1,de2,pt1,pt2,zh1,zh2,ar1,ar2,ru1,ru2,sv1,sv2,tr1r,tr2r]=await Promise.all([
- api('/discover/movie',{with_original_language:'fr',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'fr',sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_original_language:'en',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'en',sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_original_language:'es',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'es',sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_original_language:'ja',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'ja',sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_original_language:'ko',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'ko',sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_original_language:'hi',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'hi',sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_original_language:'it',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'it',sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_original_language:'de',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'de',sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_original_language:'pt',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'pt',sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_original_language:'zh',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'zh',sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_original_language:'ar',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'ar',sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_original_language:'ru',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'ru',sort_by:'popularity.desc',page:2}),
- api('/discover/movie',{with_original_language:'sv',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'da',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'tr',sort_by:'popularity.desc',page:1}),
- api('/discover/movie',{with_original_language:'tr',sort_by:'popularity.desc',page:2}),
+ const [fr1,fr2,en1,en2,es1,es2,ja1,ja2,ko1,ko2,hi1,hi2,it1,it2,de1,de2,pt1,pt2,zh1,zh2,ar1,ar2,ru1,ru2,sv1,sv2,tr1r,tr2r]=await settleAll([
+ safeApi('/discover/movie',{with_original_language:'fr',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'fr',sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_original_language:'en',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'en',sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_original_language:'es',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'es',sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_original_language:'ja',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'ja',sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_original_language:'ko',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'ko',sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_original_language:'hi',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'hi',sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_original_language:'it',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'it',sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_original_language:'de',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'de',sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_original_language:'pt',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'pt',sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_original_language:'zh',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'zh',sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_original_language:'ar',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'ar',sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_original_language:'ru',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'ru',sort_by:'popularity.desc',page:2}),
+ safeApi('/discover/movie',{with_original_language:'sv',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'da',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'tr',sort_by:'popularity.desc',page:1}),
+ safeApi('/discover/movie',{with_original_language:'tr',sort_by:'popularity.desc',page:2}),
  ]);
  fillRow('row-lang-fr',mergePages(fr1,fr2));
  fillRow('row-lang-en',mergePages(en1,en2));
